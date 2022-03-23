@@ -10,8 +10,10 @@ from .util import lookup_object
 def create_config(mqtt_client, serializer, deserializer, mqtt_private_path):
     if isinstance(serializer, str):
         serializer = lookup_object(serializer)
+        rospy.loginfo("serializer is not an instance")
     if isinstance(deserializer, str):
         deserializer = lookup_object(deserializer)
+        rospy.loginfo("deserializer is not an instance")
     private_path_extractor = create_private_path_extractor(mqtt_private_path)
     def config(binder):
         binder.bind('serializer', serializer)

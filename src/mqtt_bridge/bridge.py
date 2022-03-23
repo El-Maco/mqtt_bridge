@@ -99,7 +99,18 @@ class MqttToRosBridge(Bridge):
         if self._serialize.__name__ == "packb":
             msg_dict = self._deserialize(mqtt_msg.payload, raw=False)
         else:
-            msg_dict = self._deserialize(mqtt_msg.payload)
+            rospy.loginfo("Deserializing")
+            try:
+                msg_dict = self._deserialize(mqtt_msg.payload)
+                if isinstance(msg_dict, (bool)):
+                    msg_dict = {"data": bool(mqtt_msg.payload)}
+                rospy.loginfo("SUCCESSFUL deserialization")
+            except Exception as e:
+                rospy.logwarn(e)
+                rospy.loginfo("Trying out boolean")
+                msg_dict = {"data": bool(mqtt_msg.payload)}
+            rospy.loginfo("msg_dict: {}".format(msg_dict))
+            rospy.loginfo("type: {}".format(type(msg_dict)))
         return populate_instance(msg_dict, self._msg_type())
 
 
