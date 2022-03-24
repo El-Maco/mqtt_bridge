@@ -7,6 +7,9 @@ import rospy
 
 from .util import lookup_object, extract_values, populate_instance
 
+def format_payload(payload) -> bool:
+    return payload.decode("UTF-8").upper() == "TRUE"
+
 
 def create_bridge(factory: Union[str, "Bridge"], msg_type: Union[str, Type[rospy.Message]], topic_from: str,
                   topic_to: str, frequency: Optional[float] = None, **kwargs) -> "Bridge":
@@ -59,7 +62,6 @@ class RosToMqttBridge(Bridge):
         payload = self._serialize(extract_values(msg))
         self._mqtt_client.publish(topic=self._topic_to, payload=payload)
 
-
 class MqttToRosBridge(Bridge):
     """ Bridge from MQTT to ROS topic
 
@@ -99,18 +101,25 @@ class MqttToRosBridge(Bridge):
         if self._serialize.__name__ == "packb":
             msg_dict = self._deserialize(mqtt_msg.payload, raw=False)
         else:
-            rospy.loginfo("Deserializing")
+            rospy.loginfo("------Deserializing-------")
             try:
                 msg_dict = self._deserialize(mqtt_msg.payload)
-                if isinstance(msg_dict, (bool)):
-                    msg_dict = {"data": bool(mqtt_msg.payload)}
-                rospy.loginfo("SUCCESSFUL deserialization")
+                rospy.loginfo("PASSED deserialization")
+                rospy.loginfo("value: {}".format(msg_dict))
+                rospy.loginfo("type: {}".format(type(msg_dict)))
+
+                # If returned instance is int (or bool) create dictionary
+                if isinstance(msg_dict, (int)):
+                    rospy.loginfo("Creating dictionary of msg_dict")
+                    msg_dict = {"data": bool(msg_dict)}
             except Exception as e:
                 rospy.logwarn(e)
-                rospy.loginfo("Trying out boolean")
-                msg_dict = {"data": bool(mqtt_msg.payload)}
-            rospy.loginfo("msg_dict: {}".format(msg_dict))
-            rospy.loginfo("type: {}".format(type(msg_dict)))
+                rospy.loginfo("Failed to deserialize payload: {}".format(mqtt_msg.payload))
+                rospy.loginfo("type: {}".format(type(mqtt_msg.payload)))
+                # Decode the bit stream to bool
+                msg_dict = {"data": format_payload(mqtt_msg.payload)}
+            rospy.loginfo("msg_dict of type: {}".format(type(msg_dict)))
+            rospy.loginfo("msg_dict of value: {}".format(msg_dict))
         return populate_instance(msg_dict, self._msg_type())
 
 
