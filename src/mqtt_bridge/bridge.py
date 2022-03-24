@@ -59,7 +59,13 @@ class RosToMqttBridge(Bridge):
             self._last_published = now
 
     def _publish(self, msg: rospy.Message):
-        payload = self._serialize(extract_values(msg))
+        rospy.loginfo("extracted value before serialization: {}".format(extract_values(msg)))
+        rospy.loginfo("type: {}".format(type(extract_values(msg))))
+
+        payload = self._serialize(extract_values(msg)['data']).upper()
+
+        rospy.loginfo("final payload to publish: {}".format(payload))
+        rospy.loginfo("type: {}".format(type(payload)))
         self._mqtt_client.publish(topic=self._topic_to, payload=payload)
 
 class MqttToRosBridge(Bridge):
