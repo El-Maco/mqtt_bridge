@@ -2,6 +2,7 @@ mqtt:
   client:
     protocol: 4      # MQTTv311
   connection:
+    #host: 192.168.1.103
     host: localhost
     port: 1883
     keepalive: 60
@@ -9,12 +10,7 @@ mqtt:
 serializer: json:dumps
 deserializer: json:loads
 bridge:
-  # move_base goal
-  - factory: mqtt_bridge.bridge:RosToMqttBridge
-    msg_type: move_base_msgs.msg:MoveBaseActionGoal
-    topic_from: /move_base/goal
-    topic_to: move_base/ros_goal
   - factory: mqtt_bridge.bridge:MqttToRosBridge
-    msg_type: move_base_msgs.msg:MoveBaseActionGoal
-    topic_from: move_base/goal
-    topic_to: /move_base/goal
+    msg_type: std_msgs.msg:Bool
+    topic_from: /pickup
+    topic_to: /pickup
