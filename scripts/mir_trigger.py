@@ -5,8 +5,8 @@ from std_msgs.msg import String, Bool
 from move_base_msgs.msg import MoveBaseActionGoal
 
 
-goal_x, goal_y = 11.3160, 12.0000
-orient_z, orient_w = 0.7007, 0.9543
+goal_x, goal_y = 11.8154, 9.47028
+orient_z, orient_w = 0.9985, -0.0552
 
 class Mir_Trigger():
 
