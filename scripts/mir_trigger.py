@@ -14,8 +14,8 @@ class Mir_Trigger():
         self.pickup_goal = MoveBaseActionGoal()
         self.pickup_goal.goal.target_pose.pose.position.x = goal_x
         self.pickup_goal.goal.target_pose.pose.position.y = goal_y
-        self.pickup_goal.goal.target_pose.pose.orientation.x = orient_z
-        self.pickup_goal.goal.target_pose.pose.orientation.y = orient_w
+        self.pickup_goal.goal.target_pose.pose.orientation.z = orient_z
+        self.pickup_goal.goal.target_pose.pose.orientation.w = orient_w
 
         rospy.init_node('mir_trigger')
 
