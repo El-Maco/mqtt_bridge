@@ -2,8 +2,8 @@ mqtt:
   client:
     protocol: 4      # MQTTv311
   connection:
-    host: 192.168.1.103
-    #host: localhost
+    #host: 192.168.1.103
+    host: localhost
     port: 1883
     keepalive: 60
   private_path: device/001
@@ -11,6 +11,6 @@ serializer: json:dumps
 deserializer: json:loads
 bridge:
   - factory: mqtt_bridge.bridge:MqttToRosBridge
-    msg_type: std_msgs.msg:Bool
+    msg_type: std_msgs.msg:Int32
     topic_from: /pickup
     topic_to: /pickup

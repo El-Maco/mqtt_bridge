@@ -11,6 +11,7 @@
 
   <url>http://www.ros.org/wiki/mqtt_bridge</url>
 
+  <depend>tf</depend>
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>python3-setuptools</buildtool_depend>
 

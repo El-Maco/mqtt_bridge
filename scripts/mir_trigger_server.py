@@ -1,16 +1,14 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import rospy
 from std_srvs.srv import Trigger, TriggerResponse
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, Int32, Float64
 
 def trigger_response(req):
-    data = Bool()
-    data.data = False
-    rospy.loginfo("Publishing to /pickup: {}".format(data))
-    pub = rospy.Publisher('/pickup', Bool, queue_size=1)
+    rospy.loginfo("Publishing to /pickup: {}".format(req.data))
+    pub = rospy.Publisher('/pickup', Int32, queue_size=1)
     rospy.sleep(0.25)
-    pub.publish(data)
+    pub.publish(req.data)
     rospy.loginfo("Publish successful")
     return TriggerResponse(
             success=True,

@@ -7,8 +7,12 @@ import rospy
 
 from .util import lookup_object, extract_values, populate_instance
 
-def format_payload(payload) -> bool:
-    return payload.decode("UTF-8").upper() == "TRUE"
+# TODO: able to pass integers(/floats) aswell
+def format_payload(payload):
+    if (payload.decode("UTF-8").upper() == "TRUE"):
+        return True
+    else:
+        return False
 
 
 def create_bridge(factory: Union[str, "Bridge"], msg_type: Union[str, Type[rospy.Message]], topic_from: str,
@@ -87,6 +91,7 @@ class MqttToRosBridge(Bridge):
         self._mqtt_client.message_callback_add(self._topic_from, self._callback_mqtt)
         self._publisher = rospy.Publisher(
             self._topic_to, self._msg_type, queue_size=self._queue_size)
+        rospy.loginfo("Initialization of MqttToRosBridge SUCCESSFUL")
 
     def _callback_mqtt(self, client: mqtt.Client, userdata: Dict, mqtt_msg: mqtt.MQTTMessage):
         """ callback from MQTT """
@@ -117,7 +122,7 @@ class MqttToRosBridge(Bridge):
                 # If returned instance is int (or bool) create dictionary
                 if isinstance(msg_dict, (int)):
                     rospy.loginfo("Creating dictionary of msg_dict")
-                    msg_dict = {"data": bool(msg_dict)}
+                    msg_dict = {"data": msg_dict}
             except Exception as e:
                 rospy.logwarn(e)
                 rospy.loginfo("Failed to deserialize payload: {}".format(mqtt_msg.payload))
