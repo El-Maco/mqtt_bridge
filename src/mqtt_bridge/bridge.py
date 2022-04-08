@@ -119,8 +119,8 @@ class MqttToRosBridge(Bridge):
                 rospy.loginfo("value: {}".format(msg_dict))
                 rospy.loginfo("type: {}".format(type(msg_dict)))
 
-                # If returned instance is int (or bool) create dictionary
-                if isinstance(msg_dict, (int)):
+                # If returned instance is int/float construct dictionary
+                if isinstance(msg_dict, (int, float)):
                     rospy.loginfo("Creating dictionary of msg_dict")
                     msg_dict = {"data": msg_dict}
             except Exception as e:
@@ -128,6 +128,7 @@ class MqttToRosBridge(Bridge):
                 rospy.loginfo("Failed to deserialize payload: {}".format(mqtt_msg.payload))
                 rospy.loginfo("type: {}".format(type(mqtt_msg.payload)))
                 # Decode the bit stream to bool
+                # TODO: Handle all payload formatting in try
                 msg_dict = {"data": format_payload(mqtt_msg.payload)}
             rospy.loginfo("msg_dict of type: {}".format(type(msg_dict)))
             rospy.loginfo("msg_dict of value: {}".format(msg_dict))
