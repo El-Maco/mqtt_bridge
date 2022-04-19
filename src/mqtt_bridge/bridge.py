@@ -129,7 +129,7 @@ class MqttToRosBridge(Bridge):
                 rospy.loginfo("type: {}".format(type(mqtt_msg.payload)))
                 # Decode the bit stream to bool
                 # TODO: Handle all payload formatting in try
-                msg_dict = {"data": format_payload(mqtt_msg.payload)}
+                # msg_dict = {"data": format_payload(mqtt_msg.payload)}
             rospy.loginfo("msg_dict of type: {}".format(type(msg_dict)))
             rospy.loginfo("msg_dict of value: {}".format(msg_dict))
         return populate_instance(msg_dict, self._msg_type())
