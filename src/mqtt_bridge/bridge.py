@@ -64,9 +64,21 @@ class RosToMqttBridge(Bridge):
 
     def _publish(self, msg: rospy.Message):
         rospy.loginfo("extracted value before serialization: {}".format(extract_values(msg)))
+        rospy.loginfo("msg: {}".format(msg))
         rospy.loginfo("type: {}".format(type(extract_values(msg))))
+        rospy.loginfo("from topic {}".format(self._topic_from))
 
-        payload = self._serialize(extract_values(msg)['data']).upper()
+        # For specific topic only publish result value (int)
+        if (self._topic_to == "/pickup_result"):
+            try:
+                result = msg.status.status
+                payload = self._serialize(result)
+            except Exception as e:
+                rospy.logerr("Failed to get result status message from {}".format(type(msg)))
+                rospy.logerr(e)
+
+        else:
+            payload = self.serialize(extract_values(msg))
 
         rospy.loginfo("final payload to publish: {}".format(payload))
         rospy.loginfo("type: {}".format(type(payload)))
@@ -114,7 +126,7 @@ class MqttToRosBridge(Bridge):
         else:
             rospy.loginfo("------Deserializing-------")
             try:
-                msg_dict = self._deserialize(mqtt_msg.payload)
+                msg_dict = self._deserialize(mqtt_msg.payload.decode('utf-8').replace("'", '"'))
                 rospy.loginfo("PASSED deserialization")
                 rospy.loginfo("value: {}".format(msg_dict))
                 rospy.loginfo("type: {}".format(type(msg_dict)))

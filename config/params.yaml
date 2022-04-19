@@ -12,6 +12,9 @@ deserializer: json:loads
 bridge:
   - factory: mqtt_bridge.bridge:MqttToRosBridge
     msg_type: mqtt_bridge.msg:MirPosition
-    #msg_type: std_msgs.msg:Float64
     topic_from: /pickup
     topic_to: /pickup
+  - factory: mqtt_bridge.bridge:RosToMqttBridge
+    msg_type: move_base_msgs.msg:MoveBaseActionResult
+    topic_from: /move_base/result
+    topic_to: /pickup_result
