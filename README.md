@@ -1,6 +1,6 @@
 # mqtt_bridge
 
-[![CircleCI](https://circleci.com/gh/groove-x/mqtt_bridge.svg?style=svg)](https://circleci.com/gh/groove-x/mqtt_bridge)
+This project is forked from the [mqtt_bridge](//github.com/groove-x/mqtt_bridge) project, with modifications to suit the usecase for triggering the MiR100 through MQTT.
 
 mqtt_bridge provides a functionality to bridge between ROS and MQTT in bidirectional.
 
@@ -34,38 +34,29 @@ $ pip3 install -r requirements.txt
 $ roslaunch mqtt_bridge demo.launch
 ```
 
-Publish to `/ping`,
+Publish `{x: X, y: Y, theta: Theta}` to MQTT topic `/target_pos`,
 
 ```
-$ rostopic pub /ping std_msgs/Bool "data: true"
+$ ./commands/mqtt_goal1.sh
 ```
 
-and see response to `/pong`.
+and see command in ROS topic `/move_base/goal`.
 
 ```
-$ rostopic echo /pong
-data: True
----
+$ rostopic echo /move_base/goal
 ```
 
-Publish "hello" to `/echo`,
+When the MiR100 completes the execution of the mission, a response can be seen in the ROS topic `/move_base/result`
 
 ```
-$ rostopic pub /echo std_msgs/String "data: 'hello'"
+$ rostopic sub /move_base/result
 ```
 
-and see response to `/back`.
-
-```
-$ rostopic echo /back
-data: hello
----
-```
-
+similarly, the result code is sent to the MQTT topic `/move_result`.
 You can also see MQTT messages using `mosquitto_sub`
 
 ```
-$ mosquitto_sub -t '#'
+$ mosquitto_sub -t -v '#'
 ```
 
 ## Usage
@@ -77,22 +68,21 @@ mqtt:
   client:
     protocol: 4      # MQTTv311
   connection:
-    host: localhost
+    host: 192.168.1.12 # broker address
     port: 1883
     keepalive: 60
 bridge:
-  # ping pong
-  - factory: mqtt_bridge.bridge:RosToMqttBridge
-    msg_type: std_msgs.msg:Bool
-    topic_from: /ping
-    topic_to: ping
   - factory: mqtt_bridge.bridge:MqttToRosBridge
-    msg_type: std_msgs.msg:Bool
-    topic_from: ping
-    topic_to: /pong
+    msg_type: move_base_msgs.msg:MoveBaseActionGoal
+    topic_from: /target_pos
+    topic_to: /move_base/goal
+  - factory: mqtt_bridge.bridge:RosToMqttBridge
+    msg_type: move_base_msgs.msg:MoveBaseActionResult
+    topic_from: /move_base/result
+    topic_to: /move_result
 ```
 
-you can use any msg types like `sensor_msgs.msg:Imu`.
+It is possible to use any msg types like `sensor_msgs.msg:Imu`.
 
 launch file:
 
