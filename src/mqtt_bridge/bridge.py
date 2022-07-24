@@ -4,15 +4,34 @@ from typing import Optional, Type, Dict, Union
 import inject
 import paho.mqtt.client as mqtt
 import rospy
+from .util import lookup_object, extract_values, populate_instance, get_quaternion_from_euler
 
-from .util import lookup_object, extract_values, populate_instance
+from std_msgs.msg import String, Bool, Int32, Float64
+from move_base_msgs.msg import MoveBaseActionGoal
+from geometry_msgs.msg import Point, Quaternion
+from math import pi
+from mqtt_bridge.msg import MirPosition
 
-# TODO: able to pass integers(/floats) aswell
-def format_payload(payload):
-    if (payload.decode("UTF-8").upper() == "TRUE"):
-        return True
+# TODO: ros_msg should be json/dict
+def format_rosmsg(msg_type, msg_dict):
+    # ROS message requires quaternion calculations from euler coordinates
+    if (msg_type == type(MoveBaseActionGoal())):
+
+        ros_msg = MoveBaseActionGoal()
+        ros_msg.goal.target_pose.header.frame_id = 'map'
+
+        target_point = Point(msg_dict['x'], msg_dict['y'], 0.0)
+
+        x, y, z, w = get_quaternion_from_euler(0, 0, msg_dict['theta'])
+        rospy.loginfo("Quaternion: [{}, {}, {}, {}]".format(x, y, z, w))
+        quaternion = Quaternion(x, y, z, w)
+
+        ros_msg.goal.target_pose.pose.position = target_point
+        ros_msg.goal.target_pose.pose.orientation = quaternion
     else:
-        return False
+        ros_msg = populate_instance(msg_dict, msg_type())
+
+    return ros_msg
 
 
 def create_bridge(factory: Union[str, "Bridge"], msg_type: Union[str, Type[rospy.Message]], topic_from: str,
@@ -64,21 +83,20 @@ class RosToMqttBridge(Bridge):
 
     def _publish(self, msg: rospy.Message):
         rospy.loginfo("extracted value before serialization: {}".format(extract_values(msg)))
-        rospy.loginfo("msg: {}".format(msg))
-        rospy.loginfo("type: {}".format(type(extract_values(msg))))
-        rospy.loginfo("from topic {}".format(self._topic_from))
 
         # For specific topic only publish result value (int)
-        if (self._topic_to == "/pickup_result"):
+        if (self._topic_to == "/move_result"):
             try:
                 result = msg.status.status
                 payload = self._serialize(result)
+                rospy.loginfo(result)
             except Exception as e:
                 rospy.logerr("Failed to get result status message from {}".format(type(msg)))
                 rospy.logerr(e)
 
         else:
             payload = self.serialize(extract_values(msg))
+            rospy.loginfo("Serialized payload:", payload)
 
         rospy.loginfo("final payload to publish: {}".format(payload))
         rospy.loginfo("type: {}".format(type(payload)))
@@ -127,24 +145,17 @@ class MqttToRosBridge(Bridge):
             rospy.loginfo("------Deserializing-------")
             try:
                 msg_dict = self._deserialize(mqtt_msg.payload.decode('utf-8').replace("'", '"'))
-                rospy.loginfo("PASSED deserialization")
-                rospy.loginfo("value: {}".format(msg_dict))
-                rospy.loginfo("type: {}".format(type(msg_dict)))
+                ros_msg = format_rosmsg(self._msg_type, msg_dict)
+                rospy.loginfo("Created ROS message")
 
-                # If returned instance is int/float construct dictionary
-                if isinstance(msg_dict, (int, float)):
-                    rospy.loginfo("Creating dictionary of msg_dict")
-                    msg_dict = {"data": msg_dict}
+
             except Exception as e:
                 rospy.logwarn(e)
-                rospy.loginfo("Failed to deserialize payload: {}".format(mqtt_msg.payload))
-                rospy.loginfo("type: {}".format(type(mqtt_msg.payload)))
-                # Decode the bit stream to bool
-                # TODO: Handle all payload formatting in try
-                # msg_dict = {"data": format_payload(mqtt_msg.payload)}
-            rospy.loginfo("msg_dict of type: {}".format(type(msg_dict)))
-            rospy.loginfo("msg_dict of value: {}".format(msg_dict))
-        return populate_instance(msg_dict, self._msg_type())
+                rospy.loginfo("Failed to deserialize payload:")
+                raise
+
+            # populates the dictionary into the specified ROS Message
+            return ros_msg
 
 
 __all__ = ['create_bridge', 'Bridge', 'RosToMqttBridge', 'MqttToRosBridge']
