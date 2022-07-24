@@ -1,6 +1,7 @@
 # mqtt_bridge
 
-This project is forked from the [mqtt_bridge](//github.com/groove-x/mqtt_bridge) project, with modifications to suit the usecase for triggering the MiR100 through MQTT.
+This project is forked from the [mqtt_bridge](//github.com/groove-x/mqtt_bridge) project, with modifications to suit the use case for triggering the MiR100 through MQTT.
+The purpose of the modifications is to be able to integrate the ROS-operated MiR100 with IEC61499 control systems using the MQTT protocol as a middleware.
 
 mqtt_bridge provides a functionality to bridge between ROS and MQTT in bidirectional.
 
@@ -37,10 +38,10 @@ $ roslaunch mqtt_bridge demo.launch
 Publish `{x: X, y: Y, theta: Theta}` to MQTT topic `/target_pos`,
 
 ```
-$ ./commands/mqtt_goal1.sh
+$ ./commands/mqtt_pickup.sh
 ```
 
-and see command in ROS topic `/move_base/goal`.
+and see the command received in ROS topic `/move_base/goal`.
 
 ```
 $ rostopic echo /move_base/goal
@@ -56,7 +57,7 @@ similarly, the result code is sent to the MQTT topic `/move_result`.
 You can also see MQTT messages using `mosquitto_sub`
 
 ```
-$ mosquitto_sub -t -v '#'
+$ mosquitto_sub -v -t '#'
 ```
 
 ## Usage
